@@ -43,4 +43,19 @@ Great! Since your project is a Flask app, here are the steps to run it locally i
 6. **Access Your Routes**:
    - Open your web browser and navigate to the routes set up in your Flask app to ensure everything is working correctly.
 
-If you encounter any issues or need further assistance, feel free to ask!
+Exemple :
+
+```py
+from neo4j import GraphDatabase as gdb
+from os import getenv
+from dotenv import load_dotenv
+
+load_dotenv()
+
+with gdb.driver(
+    getenv("NEO4J_URI"),
+    auth=(getenv("NEO4J_USERNAME"), getenv("NEO4J_PASSWORD"))
+) as driver: 
+    print(driver.verify_connectivity())
+    print(driver.verify_authentication())
+```
