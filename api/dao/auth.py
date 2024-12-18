@@ -7,6 +7,8 @@ from flask import current_app
 from api.exceptions.badrequest import BadRequestException
 from api.exceptions.validation import ValidationException
 
+from api.dao.functions.create_user import create_user
+
 from neo4j.exceptions import ConstraintError
 
 class AuthDAO:
@@ -16,7 +18,7 @@ class AuthDAO:
     """
     def __init__(self, driver, jwt_secret):
         self.driver = driver
-        self.jwt_secret = jwt_secret
+        self.jwt_secret = 'fast' if jwt_secret == None else jwt_secret
 
     """
     This method should create a new User node in the database with the email and name
@@ -31,23 +33,23 @@ class AuthDAO:
         encrypted = bcrypt.hashpw(plain_password.encode("utf8"), bcrypt.gensalt()).decode('utf8')
 
         # TODO: Handle unique constraint error
-        if email != "graphacademy@neo4j.com":
-            raise ValidationException(
-                f"An account already exists with the email address {email}",
-                {"email": "An account already exists with this email"}
-            )
+        try:
+            with self.driver.session() as session:
+                result = session.execute_write(create_user, email, encrypted, name)
 
-        # Build a set of claims
-        payload = {
-            "userId": "00000000-0000-0000-0000-000000000000",
-            "email": email,
-            "name": name,
-        }
+            user = result['u']
+            payload = {
+                "userId": user['userId'],
+                "email": user['email'],
+                "name": user['name'],
+            }
 
-        # Generate Token
-        payload["token"] = self._generate_token(payload)
+            # Generate Token
+            payload["token"] = self._generate_token(payload)
 
-        return payload
+            return payload
+        except ConstraintError as err:
+            raise ValidationException(err.message, {'email', err.message})
     # end::register[]
 
     """
