@@ -1,6 +1,9 @@
 from datetime import timedelta
 from email import policy
 import os
+from dotenv import load_dotenv
+
+load_dotenv(dotenv_path=os.path.abspath('../.env'))
 
 from flask import Flask
 from flask.helpers import send_from_directory

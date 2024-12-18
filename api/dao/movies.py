@@ -2,6 +2,7 @@ from api.data import popular, goodfellas
 
 from api.exceptions.notfound import NotFoundException
 from api.data import popular
+from api.dao.functions.get_movies import get_movies
 
 class MovieDAO:
     """
@@ -22,7 +23,8 @@ class MovieDAO:
     # tag::all[]
     def all(self, sort, order, limit=6, skip=0, user_id=None):
         # TODO: Get list from movies from Neo4j
-        return popular
+        with self.driver.session() as session:
+            return session.execute_read(get_movies, sort, order, limit, skip, user_id)
     # end::all[]
 
     """
@@ -34,7 +36,7 @@ class MovieDAO:
     Results should be limited to the number passed as `limit`.
     The `skip` variable should be used to skip a certain number of rows.
 
-    If a user_id value is suppled, a `favorite` boolean property should be returned to
+    If a user_id value is supplied, a `favorite` boolean property should be returned to
     signify whether the user has added the movie to their "My Favorites" list.
     """
     # tag::getByGenre[]
