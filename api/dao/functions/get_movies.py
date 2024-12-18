@@ -3,19 +3,19 @@ This function will have one mandatory argument passed to it, a Transaction insta
 The function should also have the sort, order, skip, limit and userId parameters passed through as named parameters 
 """
 # tag::get_movies[]
-def get_movies(tx, sort, order, limit, skip, user_id):
+def get_movies(tx, sort, order, limit, skip, user_id, favorites=[]):
     # Define the cypher statement
     cypher = """
         MATCH (m:Movie)
         WHERE m.`{0}` IS NOT NULL
-        RETURN m {{ .* }} AS movie
+        RETURN m {{ .*, favorite: m.tmdbId IN $favorites }} AS movie
         ORDER BY m.`{0}` {1}
         SKIP $skip
         LIMIT $limit
     """.format(sort, order)
 
     # Run the statement within the transaction passed as the first argument
-    result = tx.run(cypher, limit=limit, skip=skip, user_id=user_id)
+    result = tx.run(cypher, limit=limit, skip=skip, user_id=user_id, favorites=favorites)
     # Extract a list of Movies from the Result
     return [row.value("movie") for row in result]
 # end::get_movies[]
