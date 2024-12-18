@@ -4,6 +4,9 @@ from api.exceptions.notfound import NotFoundException
 from api.data import popular
 from api.dao.functions.get_movies import get_movies
 from api.dao.functions.get_user_favorites import get_user_favorites
+from api.dao.functions.get_movies_in_genre import get_movies_in_genre
+from api.dao.functions.get_movies_by_actor import get_movies_by_actor
+from api.dao.functions.get_movies_by_director import get_movies_by_director
 
 class MovieDAO:
     """
@@ -46,8 +49,16 @@ class MovieDAO:
         # TODO: Get Movies in a Genre
         # TODO: The Cypher string will be formated so remember to escape the braces: {{name: $name}}
         # MATCH (m:Movie)-[:IN_GENRE]->(:Genre {name: $name})
-
-        return popular[skip:limit]
+        with self.driver.session() as sess:
+            return sess.execute_read(
+                get_movies_in_genre,
+                name=name,
+                sort=sort, 
+                order=order, 
+                limit=limit, 
+                skip=skip, 
+                user_id=user_id
+            )
     # end::getByGenre[]
 
     """
@@ -67,8 +78,16 @@ class MovieDAO:
         # TODO: Get Movies for an Actor
         # TODO: The Cypher string will be formated so remember to escape the braces: {{tmdbId: $id}}
         # MATCH (:Person {tmdbId: $id})-[:ACTED_IN]->(m:Movie)
-
-        return popular[skip:limit]
+        with self.driver.session() as sess:
+            return sess.execute_read(
+                get_movies_by_actor,
+                id=id,
+                sort=sort, 
+                order=order, 
+                limit=limit, 
+                skip=skip, 
+                user_id=user_id
+            )
     # end::getForActor[]
 
     """
@@ -88,8 +107,16 @@ class MovieDAO:
         # TODO: Get Movies directed by a Person
         # TODO: The Cypher string will be formated so remember to escape the braces: {{name: $name}}
         # MATCH (:Person {tmdbId: $id})-[:DIRECTED]->(m:Movie)
-
-        return popular[skip:limit]
+        with self.driver.session() as sess:
+            return sess.execute_read(
+                get_movies_by_director,
+                id=id,
+                sort=sort, 
+                order=order, 
+                limit=limit, 
+                skip=skip, 
+                user_id=user_id
+            )
     # end::getForDirector[]
 
     """
