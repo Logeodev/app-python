@@ -1,6 +1,8 @@
 from api.data import genres
 from api.exceptions.notfound import NotFoundException
 
+from api.dao.functions.get_genre import get_genre
+
 class GenreDAO:
     """
     The constructor expects an instance of the Neo4j Driver, which will be
@@ -65,6 +67,8 @@ class GenreDAO:
         # TODO: Open a new session
         # TODO: Define a unit of work to find the genre by it's name
         # TODO: Execute within a Read Transaction
+        with self.driver.session() as session:
+            result = session.execute_read(get_genre, name)
 
-        return [g for g in genres if g["name"] == name][0]
+        return [g for g in result if g["name"] == name][0]
     # end::find[]
