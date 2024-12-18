@@ -2,7 +2,7 @@ from api.data import ratings
 from api.exceptions.notfound import NotFoundException
 
 from api.data import goodfellas
-
+from api.dao.functions.create_rating import create_rating
 
 class RatingDAO:
     """
@@ -21,11 +21,17 @@ class RatingDAO:
         # TODO: Create function to save the rating in the database
         # TODO: Call the function within a write transaction
         # TODO: Return movie details along with a rating
+        with self.driver.session() as session:
+            record = session.execute_write(
+                create_rating, 
+                user_id=user_id,
+                movie_id=movie_id,
+                rating=rating
+            )
+        if record is None:
+            raise NotFoundException()
 
-        return {
-            **goodfellas,
-            "rating": rating
-        }
+        return record['movie']
     # end::add[]
 
 
