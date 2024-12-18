@@ -8,6 +8,7 @@ from api.exceptions.badrequest import BadRequestException
 from api.exceptions.validation import ValidationException
 
 from api.dao.functions.create_user import create_user
+from api.dao.functions.get_user import get_user
 
 from neo4j.exceptions import ConstraintError
 
@@ -70,20 +71,21 @@ class AuthDAO:
     # tag::authenticate[]
     def authenticate(self, email, plain_password):
         # TODO: Implement Login functionality
-        if email == "graphacademy@neo4j.com" and plain_password == "letmein":
-            # Build a set of claims
-            payload = {
-                "userId": "00000000-0000-0000-0000-000000000000",
-                "email": email,
-                "name": "GraphAcademy User",
-            }
-
-            # Generate Token
-            payload["token"] = self._generate_token(payload)
-
-            return payload
-        else:
+        with self.driver.session() as session:
+            user = session.execute_read(get_user, email=email)
+        if user is None:
             return False
+        if bcrypt.checkpw(
+            plain_password.encode('utf-8'), 
+            user['password'].encode('utf-8')) is False:
+            return False
+        payload = {
+            "userId": user['userId'],
+            "email": user['email'],
+            "name": user['name']
+        }
+        payload['token'] = self._generate_token(payload)
+        return payload
     # end::authenticate[]
 
     """
